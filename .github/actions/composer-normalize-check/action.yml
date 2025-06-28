@@ -1,0 +1,24 @@
+name: Check composer normalize
+
+description: Check if composer.json is normalized
+
+inputs:
+  php-version:
+    description: The PHP version to use.
+    required: true
+
+runs:
+  using: composite
+
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install composer dependencies
+      uses: hosmelq/.github/.github/actions/composer-install@main
+      with:
+        php-version: ${{ inputs.php-version }}
+
+    - name: Run composer normalize
+      shell: bash
+      run: composer normalize --dry-run

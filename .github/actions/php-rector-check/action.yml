@@ -1,0 +1,24 @@
+name: Check Rector
+
+description: Run Rector code quality checks
+
+inputs:
+  php-version:
+    description: The PHP version to use.
+    required: true
+
+runs:
+  using: composite
+
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install composer dependencies
+      uses: hosmelq/.github/.github/actions/composer-install@main
+      with:
+        php-version: ${{ inputs.php-version }}
+
+    - name: Run Rector
+      shell: bash
+      run: vendor/bin/rector --ansi --dry-run

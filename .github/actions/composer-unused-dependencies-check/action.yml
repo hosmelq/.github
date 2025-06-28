@@ -1,0 +1,24 @@
+name: Check unused composer dependencies
+
+description: Check for unused composer dependencies using composer-dependency-analyser
+
+inputs:
+  php-version:
+    description: The PHP version to use.
+    required: true
+
+runs:
+  using: composite
+
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install composer dependencies
+      uses: hosmelq/.github/.github/actions/composer-install@main
+      with:
+        php-version: ${{ inputs.php-version }}
+
+    - name: Run composer dependency analyser
+      shell: bash
+      run: vendor/bin/composer-dependency-analyser

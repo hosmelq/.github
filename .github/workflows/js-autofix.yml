@@ -1,0 +1,33 @@
+name: autofix.ci (JS)
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: The Node.js version to use.
+        required: true
+        type: string
+    secrets:
+      fontawesome-npm-auth-token:
+        description: The Font Awesome NPM auth token.
+        required: false
+
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+
+permissions:
+  contents: read
+
+jobs:
+  autofix:
+    name: autofix.ci
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Autofix JavaScript
+        uses: hosmelq/.github/.github/actions/js-autofix@main
+        with:
+          fontawesome-npm-auth-token: ${{ secrets.fontawesome-npm-auth-token }}
+          node-version: ${{ inputs.node-version }}

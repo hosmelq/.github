@@ -1,0 +1,27 @@
+name: Autofix PHP
+
+description: Automatically fix PHP code style using Pint
+
+inputs:
+  php-version:
+    description: The PHP version to use.
+    required: true
+
+runs:
+  using: composite
+
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install composer dependencies
+      uses: hosmelq/.github/.github/actions/composer-install@main
+      with:
+        php-version: ${{ inputs.php-version }}
+
+    - name: Run Pint
+      shell: bash
+      run: composer pint
+
+    - name: Autofix
+      uses: autofix-ci/action@v1

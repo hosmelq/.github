@@ -1,0 +1,30 @@
+name: PHP Pint Check
+
+description: Run PHP Pint code style check with conditional annotations on failure
+
+inputs:
+  php-version:
+    description: The PHP version to use.
+    required: true
+
+runs:
+  using: composite
+
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install composer dependencies
+      uses: hosmelq/.github/.github/actions/composer-install@main
+      with:
+        php-version: ${{ inputs.php-version }}
+
+    - name: Run Pint
+      id: pint-test
+      shell: bash
+      run: ./vendor/bin/pint --test
+
+    - name: Run Pint with annotations
+      if: failure() && steps.pint-test.outcome != 'success'
+      shell: bash
+      run: ./vendor/bin/pint --format=checkstyle --test | cs2pr

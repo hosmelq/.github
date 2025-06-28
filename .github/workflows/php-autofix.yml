@@ -1,0 +1,28 @@
+name: autofix.ci (PHP)
+
+on:
+  workflow_call:
+    inputs:
+      php-version:
+        description: The PHP version to use.
+        required: true
+        type: string
+
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+
+permissions:
+  contents: read
+
+jobs:
+  autofix:
+    name: autofix.ci
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Autofix PHP
+        uses: hosmelq/.github/.github/actions/php-autofix@main
+        with:
+          php-version: ${{ inputs.php-version }}
