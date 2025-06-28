@@ -1,0 +1,36 @@
+name: Run Danger JS
+
+description: Run Danger JS for automated PR review
+
+inputs:
+  danger-args:
+    description: Additional arguments to pass to Danger JS.
+    required: false
+    default: ''
+  
+  dangerfile:
+    description: Path to the dangerfile.
+    required: false
+    default: 'dangerfile.js'
+  
+  node-version:
+    description: The Node.js version to use.
+    required: true
+
+runs:
+  using: composite
+
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install pnpm dependencies
+      uses: hosmelq/.github/.github/actions/pnpm-install@main
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Run Danger JS
+      shell: bash
+      run: pnpm danger ci --dangerfile ${{ inputs.dangerfile }} ${{ inputs.danger-args }}
+      env:
+        GITHUB_TOKEN: ${{ github.token }}

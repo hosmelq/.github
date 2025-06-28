@@ -1,0 +1,243 @@
+name: Continuous integration (PHP + JS)
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: The Node.js version to use.
+        required: true
+        type: string
+      
+      php-coverage:
+        description: Coverage driver to use.
+        required: false
+        type: string
+      
+      php-extensions:
+        description: PHP extensions to install.
+        required: false
+        type: string
+      
+      php-tools:
+        description: PHP tools to install.
+        required: false
+        type: string
+      
+      php-version:
+        description: The PHP version to use.
+        required: true
+        type: string
+    secrets:
+      fontawesome-npm-auth-token:
+        description: The Font Awesome NPM auth token.
+        required: false
+
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+
+jobs:
+  check-unused-composer-dependencies:
+    name: Check unused composer dependencies
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install composer dependencies
+        uses: hosmelq/.github/.github/actions/composer-install@main
+        with:
+          php-coverage: ${{ inputs.php-coverage }}
+          php-extensions: ${{ inputs.php-extensions }}
+          php-tools: ${{ inputs.php-tools }}
+          php-version: ${{ inputs.php-version }}
+
+      - name: Run composer dependency analyser
+        run: vendor/bin/composer-dependency-analyser
+
+  check-composer:
+    name: Check composer
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install composer dependencies
+        uses: hosmelq/.github/.github/actions/composer-install@main
+        with:
+          php-coverage: ${{ inputs.php-coverage }}
+          php-extensions: ${{ inputs.php-extensions }}
+          php-tools: ${{ inputs.php-tools }}
+          php-version: ${{ inputs.php-version }}
+
+      - name: Run composer normalize
+        run: composer normalize --dry-run
+
+  check-static-code:
+    name: Check static code
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install composer dependencies
+        uses: hosmelq/.github/.github/actions/composer-install@main
+        with:
+          php-coverage: ${{ inputs.php-coverage }}
+          php-extensions: ${{ inputs.php-extensions }}
+          php-tools: ${{ inputs.php-tools }}
+          php-version: ${{ inputs.php-version }}
+
+      - name: Run PHPStan
+        run: vendor/bin/phpstan analyse --error-format=checkstyle | cs2pr
+
+  check-code-quality:
+    name: Check code quality
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install composer dependencies
+        uses: hosmelq/.github/.github/actions/composer-install@main
+        with:
+          php-coverage: ${{ inputs.php-coverage }}
+          php-extensions: ${{ inputs.php-extensions }}
+          php-tools: ${{ inputs.php-tools }}
+          php-version: ${{ inputs.php-version }}
+
+      - name: Run Rector
+        run: vendor/bin/rector --ansi --dry-run
+
+  check-code-style:
+    name: Check code style
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm dependencies
+        uses: hosmelq/.github/.github/actions/pnpm-install@main
+        with:
+          fontawesome-npm-auth-token: ${{ secrets.fontawesome-npm-auth-token }}
+          node-version: ${{ inputs.node-version }}
+
+      - name: Run Oxc
+        run: pnpm lint
+
+      - name: Install composer dependencies
+        uses: hosmelq/.github/.github/actions/composer-install@main
+        with:
+          php-coverage: ${{ inputs.php-coverage }}
+          php-extensions: ${{ inputs.php-extensions }}
+          php-tools: ${{ inputs.php-tools }}
+          php-version: ${{ inputs.php-version }}
+
+      - name: Run Pint
+        id: pint-test
+        run: ./vendor/bin/pint --test
+
+      - name: Run Pint with annotations
+        if: failure() && steps.pint-test.outcome != 'success'
+        run: ./vendor/bin/pint --format=checkstyle --test | cs2pr
+
+  tests:
+    name: Tests
+
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_DATABASE: testing
+        image: mysql:9.3
+        options: >-
+          --health-cmd "mysqladmin ping"
+          --health-interval 10s
+          --health-retries 5
+          --health-timeout 5s
+        ports:
+          - 3306:3306
+
+      redis:
+        image: redis:8.2-m01
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-retries 5
+          --health-timeout 5s
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm dependencies
+        uses: hosmelq/.github/.github/actions/pnpm-install@main
+        with:
+          fontawesome-npm-auth-token: ${{ secrets.fontawesome-npm-auth-token }}
+          node-version: ${{ inputs.node-version }}
+
+      - name: Build frontend
+        run: pnpm build
+        env:
+          FONTAWESOME_NPM_AUTH_TOKEN: ${{ secrets.fontawesome-npm-auth-token }}
+
+      - name: Install composer dependencies
+        uses: hosmelq/.github/.github/actions/composer-install@main
+        with:
+          php-coverage: ${{ inputs.php-coverage }}
+          php-extensions: ${{ inputs.php-extensions }}
+          php-tools: ${{ inputs.php-tools }}
+          php-version: ${{ inputs.php-version }}
+
+      - name: Setup problem matchers
+        run: |
+          echo "::add-matcher::${{ runner.tool_cache }}/php.json"
+          echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+
+      - name: Check for testing environment file
+        id: check-env
+        run: |
+          if [ -f .env.testing.example ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Copy .env
+        if: steps.check-env.outputs.exists == 'true'
+        run: cp .env.testing.example .env.testing
+
+      - name: Generate key
+        if: steps.check-env.outputs.exists == 'true'
+        run: php artisan key:generate --env=testing
+
+      - name: Check project type
+        id: check-project
+        run: |
+          if [ -f artisan ]; then
+            echo "type=laravel" >> $GITHUB_OUTPUT
+          else
+            echo "type=package" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run Laravel tests
+        if: steps.check-project.outputs.type == 'laravel'
+        run: php artisan test --parallel
+
+      - name: Run package tests
+        if: steps.check-project.outputs.type == 'package'
+        run: composer test
