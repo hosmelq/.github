@@ -1,0 +1,37 @@
+name: Check JavaScript lint
+
+description: Run JavaScript linting with Oxc
+
+inputs:
+  fontawesome-npm-auth-token:
+    description: The Font Awesome NPM auth token.
+    required: false
+
+  node-version:
+    default: '22'
+    description: The Node.js version to use.
+    required: false
+
+  working-directory:
+    default: '.'
+    description: Directory to run pnpm commands in.
+    required: false
+
+runs:
+  using: composite
+
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install pnpm dependencies
+      uses: hosmelq/.github/.github/actions/pnpm-install@main
+      with:
+        fontawesome-npm-auth-token: ${{ inputs.fontawesome-npm-auth-token }}
+        node-version: ${{ inputs.node-version }}
+        working-directory: ${{ inputs.working-directory }}
+
+    - name: Run Oxc
+      run: pnpm lint
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
