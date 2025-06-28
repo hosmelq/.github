@@ -1,0 +1,49 @@
+name: autofix.ci (JS)
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        default: '22'
+        description: The Node.js version to use.
+        required: false
+        type: string
+
+      package-manager:
+        default: 'bun'
+        description: Package manager to use (bun or pnpm).
+        required: false
+        type: string
+
+      working-directory:
+        default: '.'
+        description: Directory to run package manager commands in.
+        required: false
+        type: string
+
+    secrets:
+      fontawesome-npm-auth-token:
+        description: The Font Awesome NPM auth token.
+        required: false
+
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+
+permissions:
+  contents: read
+
+jobs:
+  autofix:
+    name: autofix.ci
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Autofix JavaScript
+        uses: hosmelq/.github/.github/actions/js-autofix@main
+        with:
+          fontawesome-npm-auth-token: ${{ secrets.fontawesome-npm-auth-token }}
+          node-version: ${{ inputs.node-version }}
+          package-manager: ${{ inputs.package-manager }}
+          working-directory: ${{ inputs.working-directory }}

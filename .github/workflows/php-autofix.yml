@@ -1,0 +1,48 @@
+name: autofix.ci (PHP)
+
+on:
+  workflow_call:
+    inputs:
+      php-coverage:
+        description: Coverage driver to use.
+        required: false
+        type: string
+
+      php-extensions:
+        description: PHP extensions to install.
+        required: false
+        type: string
+
+      php-tools:
+        default: 'cs2pr'
+        description: PHP tools to install.
+        required: false
+        type: string
+
+      php-version:
+        default: '8.5'
+        description: The PHP version to use.
+        required: false
+        type: string
+
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+
+permissions:
+  contents: read
+
+jobs:
+  autofix:
+    name: autofix.ci
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Autofix PHP
+        uses: hosmelq/.github/.github/actions/php-autofix@main
+        with:
+          php-coverage: ${{ inputs.php-coverage }}
+          php-extensions: ${{ inputs.php-extensions }}
+          php-tools: ${{ inputs.php-tools }}
+          php-version: ${{ inputs.php-version }}

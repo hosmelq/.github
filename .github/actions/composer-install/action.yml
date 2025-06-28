@@ -1,0 +1,54 @@
+name: Composer install
+
+description: Install composer dependencies
+
+inputs:
+  php-coverage:
+    default: 'none'
+    description: Coverage driver to use.
+    required: false
+
+  php-extensions:
+    default: ''
+    description: PHP extensions to install.
+    required: false
+
+  php-tools:
+    default: 'cs2pr'
+    description: PHP tools to install.
+    required: false
+
+  php-version:
+    default: '8.5'
+    description: The PHP version to use.
+    required: false
+
+runs:
+  using: composite
+
+  steps:
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        coverage: ${{ inputs.php-coverage }}
+        extensions: ${{ inputs.php-extensions }}
+        php-version: ${{ inputs.php-version }}
+        tools: ${{ inputs.php-tools }}
+
+    - name: Get composer cache directory
+      id: composer-cache
+      shell: bash
+      run: |
+        echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+    - name: Restore composer cache
+      uses: actions/cache@v4
+      with:
+        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+        path: ${{ steps.composer-cache.outputs.dir }}
+        restore-keys: |
+          ${{ runner.os }}-composer-
+
+    - name: Install composer dependencies
+      shell: bash
+      run: composer install --no-progress --prefer-dist

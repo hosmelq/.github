@@ -1,0 +1,48 @@
+name: Check JavaScript lint
+
+description: Run JavaScript linting with Oxc
+
+inputs:
+  fontawesome-npm-auth-token:
+    description: The Font Awesome NPM auth token.
+    required: false
+
+  node-version:
+    default: '22'
+    description: The Node.js version to use.
+    required: false
+
+  package-manager:
+    default: 'bun'
+    description: Package manager to use (bun or pnpm).
+    required: false
+
+  working-directory:
+    default: '.'
+    description: Directory to run package manager commands in.
+    required: false
+
+runs:
+  using: composite
+
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Install dependencies
+      uses: hosmelq/.github/.github/actions/npm-install@main
+      with:
+        fontawesome-npm-auth-token: ${{ inputs.fontawesome-npm-auth-token }}
+        node-version: ${{ inputs.node-version }}
+        package-manager: ${{ inputs.package-manager }}
+        working-directory: ${{ inputs.working-directory }}
+
+    - name: Run lint
+      run: |
+        if [ "${{ inputs.package-manager }}" = "bun" ]; then
+          bun run lint
+        else
+          pnpm run lint
+        fi
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}

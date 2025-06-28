@@ -1,0 +1,79 @@
+name: Install JS dependencies
+
+description: Install JavaScript dependencies with Bun (default) or pnpm
+
+inputs:
+  bun-version:
+    default: 'latest'
+    description: Bun version to use when package-manager is bun.
+    required: false
+
+  cache-dependency-path:
+    default: 'pnpm-lock.yaml'
+    description: 'Used to specify the path to a dependency file: package-lock.json, yarn.lock, etc. Supports wildcards or a list of file names for caching multiple dependencies.'
+    required: false
+
+  fontawesome-npm-auth-token:
+    description: The Font Awesome NPM auth token.
+    required: false
+
+  node-version:
+    default: '22'
+    description: The Node.js version to use.
+    required: false
+
+  package-json-file:
+    default: 'package.json'
+    description: File path to the package.json to read "packageManager" configuration.
+    required: false
+
+  package-manager:
+    default: 'bun'
+    description: 'Package manager to install dependencies with. Supported: bun, pnpm.'
+    required: false
+
+  working-directory:
+    default: '.'
+    description: Directory to run package manager commands in.
+    required: false
+
+runs:
+  using: composite
+
+  steps:
+    - name: Install Bun
+      if: ${{ inputs.package-manager == 'bun' }}
+      uses: oven-sh/setup-bun@v2
+      with:
+        bun-version: ${{ inputs.bun-version }}
+
+    - name: Install pnpm
+      if: ${{ inputs.package-manager == 'pnpm' }}
+      uses: pnpm/action-setup@v4
+      with:
+        package_json_file: ${{ inputs.package-json-file }}
+        run_install: false
+
+    - name: Install Node.js
+      if: ${{ inputs.package-manager == 'pnpm' }}
+      uses: actions/setup-node@v4
+      with:
+        cache: 'pnpm'
+        cache-dependency-path: ${{ inputs.cache-dependency-path }}
+        node-version: ${{ inputs.node-version }}
+
+    - name: Install dependencies (bun)
+      if: ${{ inputs.package-manager == 'bun' }}
+      run: bun install
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        FONTAWESOME_NPM_AUTH_TOKEN: ${{ inputs.fontawesome-npm-auth-token }}
+
+    - name: Install dependencies (pnpm)
+      if: ${{ inputs.package-manager == 'pnpm' }}
+      run: pnpm install
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        FONTAWESOME_NPM_AUTH_TOKEN: ${{ inputs.fontawesome-npm-auth-token }}

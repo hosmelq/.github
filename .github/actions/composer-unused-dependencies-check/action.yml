@@ -1,0 +1,43 @@
+name: Check unused composer dependencies
+
+description: Check for unused composer dependencies using composer-dependency-analyser
+
+inputs:
+  php-coverage:
+    default: 'none'
+    description: Coverage driver to use.
+    required: false
+
+  php-extensions:
+    default: ''
+    description: PHP extensions to install.
+    required: false
+
+  php-tools:
+    default: 'cs2pr'
+    description: PHP tools to install.
+    required: false
+
+  php-version:
+    default: '8.5'
+    description: The PHP version to use.
+    required: false
+
+runs:
+  using: composite
+
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v6
+
+    - name: Install composer dependencies
+      uses: hosmelq/.github/.github/actions/composer-install@main
+      with:
+        php-coverage: ${{ inputs.php-coverage }}
+        php-extensions: ${{ inputs.php-extensions }}
+        php-tools: ${{ inputs.php-tools }}
+        php-version: ${{ inputs.php-version }}
+
+    - name: Run composer dependency analyser
+      shell: bash
+      run: vendor/bin/composer-dependency-analyser
