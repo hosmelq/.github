@@ -1,0 +1,37 @@
+name: Autofix JavaScript
+
+description: Automatically fix JavaScript code style using Oxc and Prettier
+
+inputs:
+  fontawesome-npm-auth-token:
+    description: The Font Awesome NPM auth token.
+    required: false
+
+  node-version:
+    default: '22'
+    description: The Node.js version to use.
+    required: false
+
+runs:
+  using: composite
+
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install pnpm dependencies
+      uses: hosmelq/.github/.github/actions/pnpm-install@main
+      with:
+        fontawesome-npm-auth-token: ${{ inputs.fontawesome-npm-auth-token }}
+        node-version: ${{ inputs.node-version }}
+
+    - name: Run Oxc
+      shell: bash
+      run: pnpm fix
+
+    - name: Run Prettier
+      shell: bash
+      run: pnpm format
+
+    - name: Autofix
+      uses: autofix-ci/action@v1
