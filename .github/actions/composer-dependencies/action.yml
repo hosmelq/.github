@@ -1,0 +1,110 @@
+name: Prepare composer dependencies
+
+description: Install composer dependencies, upload vendor as an artifact, or download vendor from an artifact
+
+inputs:
+  artifact-mode:
+    default: 'none'
+    description: Composer dependency artifact mode. Use none, upload, or download.
+    required: false
+
+  artifact-name:
+    default: 'php-vendor'
+    description: Workflow artifact name to upload or download when artifact-mode is upload or download.
+    required: false
+
+  php-coverage:
+    default: 'none'
+    description: Coverage driver to use.
+    required: false
+
+  php-extensions:
+    default: ''
+    description: PHP extensions to install.
+    required: false
+
+  php-tools:
+    default: 'cs2pr'
+    description: PHP tools to install.
+    required: false
+
+  php-version:
+    default: '8.5'
+    description: The PHP version to use.
+    required: false
+
+  pie-extensions:
+    default: ''
+    description: Comma-separated PIE extension packages to install.
+    required: false
+
+runs:
+  using: composite
+
+  steps:
+    - name: Validate artifact mode
+      env:
+        ARTIFACT_MODE: ${{ inputs.artifact-mode }}
+        ARTIFACT_NAME: ${{ inputs.artifact-name }}
+      run: |
+        case "$ARTIFACT_MODE" in
+          none|upload|download) ;;
+          *)
+            echo "::error::artifact-mode must be one of: none, upload, download"
+            exit 1
+            ;;
+        esac
+
+        if [ "$ARTIFACT_MODE" != "none" ] && [ -z "$ARTIFACT_NAME" ]; then
+          echo "::error::artifact-name is required when artifact-mode is upload or download"
+          exit 1
+        fi
+      shell: bash
+
+    - name: Install composer dependencies
+      if: ${{ inputs.artifact-mode != 'download' }}
+      uses: hosmelq/.github/.github/actions/composer-install@main
+      with:
+        php-coverage: ${{ inputs.php-coverage }}
+        php-extensions: ${{ inputs.php-extensions }}
+        php-tools: ${{ inputs.php-tools }}
+        php-version: ${{ inputs.php-version }}
+        pie-extensions: ${{ inputs.pie-extensions }}
+
+    - name: Archive composer dependencies
+      if: ${{ inputs.artifact-mode == 'upload' }}
+      run: tar -cf php-vendor.tar vendor
+      shell: bash
+
+    - name: Upload composer artifact
+      if: ${{ inputs.artifact-mode == 'upload' }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ inputs.artifact-name }}
+        if-no-files-found: error
+        path: php-vendor.tar
+        retention-days: 1
+
+    - name: Setup PHP
+      if: ${{ inputs.artifact-mode == 'download' }}
+      uses: hosmelq/.github/.github/actions/php-setup@main
+      with:
+        php-coverage: ${{ inputs.php-coverage }}
+        php-extensions: ${{ inputs.php-extensions }}
+        php-tools: ${{ inputs.php-tools }}
+        php-version: ${{ inputs.php-version }}
+        pie-extensions: ${{ inputs.pie-extensions }}
+
+    - name: Download composer artifact
+      if: ${{ inputs.artifact-mode == 'download' }}
+      uses: actions/download-artifact@v8
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: .
+
+    - name: Extract composer artifact
+      if: ${{ inputs.artifact-mode == 'download' }}
+      run: |
+        tar -xf php-vendor.tar
+        rm php-vendor.tar
+      shell: bash

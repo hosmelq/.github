@@ -1,0 +1,19 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "dependencyDashboard": true,
+  "enabledManagers": ["github-actions"],
+  "extends": ["config:recommended", "helpers:pinGitHubActionDigests", "schedule:weekly"],
+  "includePaths": [".github/actions/**", ".github/workflows/**"],
+  "labels": ["dependencies"],
+  "packageRules": [
+    {
+      "addLabels": ["github-actions"],
+      "groupName": "GitHub Actions",
+      "matchManagers": ["github-actions"]
+    }
+  ],
+  "rebaseWhen": "conflicted",
+  "semanticCommits": "enabled",
+  "separateMajorMinor": false,
+  "timezone": "America/Managua"
+}

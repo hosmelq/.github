@@ -1,0 +1,19 @@
+.env:
+  - changed-files:
+      - any-glob-to-any-file: ['.env*']
+
+config:
+  - changed-files:
+      - any-glob-to-any-file: ['config/*']
+
+github-actions:
+  - changed-files:
+      - any-glob-to-any-file: ['.github/workflows/**', '.github/actions/**']
+
+migrations:
+  - changed-files:
+      - any-glob-to-any-file: ['database/migrations/**']
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file: ['tests/**', 'phpunit.xml*']

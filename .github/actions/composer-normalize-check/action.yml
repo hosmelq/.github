@@ -1,0 +1,58 @@
+name: Check composer normalize
+
+description: Check if composer.json is normalized
+
+inputs:
+  artifact-mode:
+    default: 'none'
+    description: Composer dependency artifact mode. Use none, upload, or download.
+    required: false
+
+  artifact-name:
+    default: 'php-vendor'
+    description: Workflow artifact name to upload or download when artifact-mode is upload or download.
+    required: false
+
+  php-coverage:
+    default: 'none'
+    description: Coverage driver to use.
+    required: false
+
+  php-extensions:
+    default: ''
+    description: PHP extensions to install.
+    required: false
+
+  php-tools:
+    default: 'cs2pr'
+    description: PHP tools to install.
+    required: false
+
+  php-version:
+    default: '8.5'
+    description: The PHP version to use.
+    required: false
+
+  pie-extensions:
+    default: ''
+    description: Comma-separated PIE extension packages to install.
+    required: false
+
+runs:
+  using: composite
+
+  steps:
+    - name: Prepare composer dependencies
+      uses: hosmelq/.github/.github/actions/composer-dependencies@main
+      with:
+        artifact-mode: ${{ inputs.artifact-mode }}
+        artifact-name: ${{ inputs.artifact-name }}
+        php-coverage: ${{ inputs.php-coverage }}
+        php-extensions: ${{ inputs.php-extensions }}
+        php-tools: ${{ inputs.php-tools }}
+        php-version: ${{ inputs.php-version }}
+        pie-extensions: ${{ inputs.pie-extensions }}
+
+    - name: Run composer normalize
+      run: composer normalize --dry-run
+      shell: bash

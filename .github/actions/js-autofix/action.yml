@@ -1,0 +1,37 @@
+name: Autofix JavaScript
+
+description: Automatically fix JavaScript code style using Oxc and Prettier
+
+inputs:
+  node-version:
+    default: '24'
+    description: The Node.js version to use.
+    required: false
+
+  working-directory:
+    default: '.'
+    description: Directory to run package manager commands in.
+    required: false
+
+runs:
+  using: composite
+
+  steps:
+    - name: Install dependencies
+      uses: hosmelq/.github/.github/actions/npm-install@main
+      with:
+        node-version: ${{ inputs.node-version }}
+        working-directory: ${{ inputs.working-directory }}
+
+    - name: Run Oxc
+      run: nub run fix
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+
+    - name: Run Prettier
+      run: nub run format
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+
+    - name: Autofix
+      uses: autofix-ci/action@v1
