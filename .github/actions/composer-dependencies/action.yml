@@ -1,0 +1,65 @@
+name: Prepare composer dependencies
+
+description: Install composer dependencies or restore them from an uploaded artifact
+
+inputs:
+  composer-artifact-name:
+    default: ''
+    description: Composer vendor artifact to download instead of installing dependencies.
+    required: false
+
+  php-coverage:
+    default: 'none'
+    description: Coverage driver to use.
+    required: false
+
+  php-extensions:
+    default: ''
+    description: PHP extensions to install.
+    required: false
+
+  php-tools:
+    default: 'cs2pr'
+    description: PHP tools to install.
+    required: false
+
+  php-version:
+    default: '8.5'
+    description: The PHP version to use.
+    required: false
+
+runs:
+  using: composite
+
+  steps:
+    - name: Install composer dependencies
+      if: ${{ inputs.composer-artifact-name == '' }}
+      uses: hosmelq/.github/.github/actions/composer-install@main
+      with:
+        php-coverage: ${{ inputs.php-coverage }}
+        php-extensions: ${{ inputs.php-extensions }}
+        php-tools: ${{ inputs.php-tools }}
+        php-version: ${{ inputs.php-version }}
+
+    - name: Setup PHP
+      if: ${{ inputs.composer-artifact-name != '' }}
+      uses: hosmelq/.github/.github/actions/php-setup@main
+      with:
+        php-coverage: ${{ inputs.php-coverage }}
+        php-extensions: ${{ inputs.php-extensions }}
+        php-tools: ${{ inputs.php-tools }}
+        php-version: ${{ inputs.php-version }}
+
+    - name: Download composer artifact
+      if: ${{ inputs.composer-artifact-name != '' }}
+      uses: actions/download-artifact@v8
+      with:
+        name: ${{ inputs.composer-artifact-name }}
+        path: .
+
+    - name: Extract composer artifact
+      if: ${{ inputs.composer-artifact-name != '' }}
+      shell: bash
+      run: |
+        tar -xf php-vendor.tar
+        rm php-vendor.tar
