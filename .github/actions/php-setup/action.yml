@@ -71,7 +71,11 @@ runs:
           extension="${extension%"${extension##*[![:space:]]}"}"
 
           if [[ -n "$extension" ]]; then
-            pie install --no-cache "$extension"
+            if [[ "$RUNNER_OS" == "Windows" ]]; then
+              pie install --no-cache "$extension"
+            else
+              sudo -E pie install --no-cache "$extension"
+            fi
           fi
         done
       shell: bash
