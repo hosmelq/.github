@@ -35,7 +35,9 @@ runs:
 
     - name: Run Danger JS
       env:
+        DANGER_ARGS: ${{ inputs.danger-args }}
+        DANGERFILE: ${{ inputs.dangerfile }}
         GITHUB_TOKEN: ${{ github.token }}
-      run: nubx danger ci --dangerfile "${{ inputs.dangerfile }}" ${{ inputs.danger-args }}
+      run: nubx danger ci --dangerfile "$DANGERFILE" $DANGER_ARGS
       shell: bash
       working-directory: ${{ inputs.working-directory }}

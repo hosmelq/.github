@@ -1,0 +1,37 @@
+name: GitHub Actions security analysis
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+
+permissions:
+  contents: read
+
+jobs:
+  zizmor:
+    name: Run zizmor
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Run zizmor
+        uses: zizmorcore/zizmor-action@70fb788f84895a7701f5643d103d587e460b5c99 # v0.6.3
+        with:
+          advanced-security: false
+          annotations: true
+          collect: default
+          config: .github/zizmor.yml
+          min-confidence: medium
+          min-severity: medium
+          persona: auditor
+          version: 1.30.0

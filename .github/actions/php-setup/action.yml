@@ -52,7 +52,7 @@ runs:
       shell: bash
 
     - name: Setup PHP
-      uses: shivammathur/setup-php@v2
+      uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
       with:
         coverage: ${{ inputs.php-coverage }}
         extensions: ${{ inputs.php-extensions }}

@@ -1,0 +1,6 @@
+rules:
+  unpinned-uses:
+    config:
+      policies:
+        hosmelq/.github/*: ref-pin
+        '*': hash-pin

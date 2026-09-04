@@ -7,6 +7,9 @@ concurrency:
   cancel-in-progress: true
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
 
+permissions:
+  contents: read
+
 jobs:
   labeler:
     name: Labeler
@@ -20,13 +23,13 @@ jobs:
 
     steps:
       - name: Checkout labeler config
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           path: .hosmelq-github-config
           repository: hosmelq/.github
           sparse-checkout: .github/labeler.yml
 
       - name: Run labeler
-        uses: actions/labeler@v6
+        uses: actions/labeler@b8dd2d9be0f68b860e7dae5dae7d772984eacd6d # v6
         with:
           configuration-path: .hosmelq-github-config/.github/labeler.yml
