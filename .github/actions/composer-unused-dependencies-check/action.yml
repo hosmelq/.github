@@ -24,7 +24,7 @@ inputs:
     required: false
 
   php-tools:
-    default: 'cs2pr'
+    default: ''
     description: PHP tools to install.
     required: false
 

@@ -1,8 +1,18 @@
-name: Composer install
+name: PHP ECS Check
 
-description: Install composer dependencies
+description: Run PHP ECS code style check
 
 inputs:
+  artifact-mode:
+    default: 'none'
+    description: Composer dependency artifact mode. Use none, upload, or download.
+    required: false
+
+  artifact-name:
+    default: 'php-vendor'
+    description: Workflow artifact name to upload or download when artifact-mode is upload or download.
+    required: false
+
   php-coverage:
     default: 'none'
     description: Coverage driver to use.
@@ -32,29 +42,18 @@ runs:
   using: composite
 
   steps:
-    - name: Setup PHP
-      uses: hosmelq/.github/.github/actions/php-setup@main
+    - name: Prepare composer dependencies
+      uses: hosmelq/.github/.github/actions/composer-dependencies@main
       with:
+        artifact-mode: ${{ inputs.artifact-mode }}
+        artifact-name: ${{ inputs.artifact-name }}
         php-coverage: ${{ inputs.php-coverage }}
         php-extensions: ${{ inputs.php-extensions }}
         php-tools: ${{ inputs.php-tools }}
         php-version: ${{ inputs.php-version }}
         pie-extensions: ${{ inputs.pie-extensions }}
 
-    - name: Get composer cache directory
-      id: composer-cache
-      run: |
-        echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-      shell: bash
-
-    - name: Restore composer cache
-      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
-      with:
-        key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-        path: ${{ steps.composer-cache.outputs.dir }}
-        restore-keys: |
-          ${{ runner.os }}-composer-
-
-    - name: Install composer dependencies
-      run: composer install --no-interaction --no-progress --prefer-dist
+    - name: Run ECS
+      id: ecs-test
+      run: vendor/bin/ecs check
       shell: bash

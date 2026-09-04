@@ -1,19 +1,40 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "customManagers": [
+    {
+      "customType": "regex",
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "zizmorcore/zizmor",
+      "extractVersionTemplate": "^v(?<version>.+)$",
+      "managerFilePatterns": [".github/workflows/zizmor.yml"],
+      "matchStrings": ["version: (?<currentValue>[0-9]+\\.[0-9]+\\.[0-9]+)"]
+    },
+    {
+      "customType": "regex",
+      "datasourceTemplate": "node-version",
+      "depNameTemplate": "node",
+      "managerFilePatterns": [".github/actions/**/action.yml"],
+      "matchStrings": ["node-version:\\n\\s+default: '(?<currentValue>[^']+)'"]
+    }
+  ],
   "dependencyDashboard": true,
-  "enabledManagers": ["github-actions"],
-  "extends": ["config:recommended", "helpers:pinGitHubActionDigests", "schedule:weekly"],
+  "enabledManagers": ["custom.regex", "github-actions"],
+  "extends": [
+    "config:recommended",
+    "group:all",
+    "helpers:pinGitHubActionDigests",
+    "schedule:weekly"
+  ],
   "includePaths": [".github/actions/**", ".github/workflows/**"],
-  "labels": ["dependencies"],
+  "minimumReleaseAge": "1 day",
   "packageRules": [
     {
-      "addLabels": ["github-actions"],
-      "groupName": "GitHub Actions",
-      "matchManagers": ["github-actions"]
+      "enabled": false,
+      "matchDepNames": ["ghcr.io/zizmorcore/zizmor", "hosmelq/.github"]
     }
   ],
   "rebaseWhen": "conflicted",
   "semanticCommits": "enabled",
-  "separateMajorMinor": false,
-  "timezone": "America/Managua"
+  "timezone": "America/Managua",
+  "updateNotScheduled": false
 }

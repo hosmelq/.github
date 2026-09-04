@@ -2,10 +2,7 @@
 
 Reusable composite actions and workflows for JavaScript and PHP/Laravel projects.
 
-This repository exposes:
-
-- Composite actions under [`.github/actions`](.github/actions)
-- One reusable workflow: [`.github/workflows/labeler.yml`](.github/workflows/labeler.yml)
+This repository exposes composite actions under [`.github/actions`](.github/actions).
 
 The old reusable CI and autofix workflows were removed. Consumers should compose their own workflows from these actions.
 
@@ -60,32 +57,13 @@ Keeping checkout in the consumer workflow avoids repeated clean checkouts when a
 
 | Action | Purpose |
 | --- | --- |
-| [`php-autofix`](.github/actions/php-autofix/action.yml) | Install Composer dependencies, run `composer pint`, and run `autofix-ci/action`. |
 | [`composer-normalize-check`](.github/actions/composer-normalize-check/action.yml) | Prepare Composer dependencies and run `composer normalize --dry-run`. |
 | [`composer-unused-dependencies-check`](.github/actions/composer-unused-dependencies-check/action.yml) | Prepare Composer dependencies and run `vendor/bin/composer-dependency-analyser`. |
+| [`php-autofix`](.github/actions/php-autofix/action.yml) | Install Composer dependencies, run `composer pint`, and run `autofix-ci/action`. |
+| [`php-ecs-check`](.github/actions/php-ecs-check/action.yml) | Prepare Composer dependencies and run ECS in check mode. |
 | [`php-pint-check`](.github/actions/php-pint-check/action.yml) | Prepare Composer dependencies, run Pint in check mode, and emit annotations on failure. |
 | [`php-rector-check`](.github/actions/php-rector-check/action.yml) | Prepare Composer dependencies and run Rector in dry-run mode. |
 | [`phpstan-check`](.github/actions/phpstan-check/action.yml) | Prepare Composer dependencies and run PHPStan with `cs2pr` annotations. |
-
-## Workflow
-
-### `labeler.yml`
-
-Reusable workflow that applies labels to pull requests using this repository's shared [`.github/labeler.yml`](.github/labeler.yml) config.
-
-Required permissions:
-
-- `contents: read`
-- `issues: write`
-- `pull-requests: write`
-
-Example:
-
-```yaml
-jobs:
-  labeler:
-    uses: hosmelq/.github/.github/workflows/labeler.yml@<commit-sha>
-```
 
 ## Inputs
 
@@ -97,7 +75,7 @@ Used by PHP actions unless noted otherwise:
 - `artifact-name` (optional, default: `php-vendor`): workflow artifact name used when `artifact-mode` is `upload` or `download`.
 - `php-coverage` (optional, default: `none`)
 - `php-extensions` (optional, default: empty)
-- `php-tools` (optional, default: `cs2pr`)
+- `php-tools` (optional, default: empty, `cs2pr` for `php-pint-check` and `phpstan-check`)
 - `php-version` (optional, default: `8.5`)
 - `pie-extensions` (optional, default: empty): comma-separated PIE extension packages to install.
 
